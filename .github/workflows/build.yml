@@ -1,0 +1,26 @@
+name: Build APK
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build APK
+      uses: uraimo/run-on-arch-action@v2
+      with:
+        arch: x86_64
+        distro: ubuntu20.04
+        run: |
+          apt-get update
+          apt-get install -y wget unzip
+          wget https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip
+          unzip commandlinetools-linux-6858069_latest.zip
+          yes | ./cmdline-tools/bin/sdkmanager --sdk_root=android-sdk "platforms;android-29" "build-tools;29.0.3"
+          ./android-sdk/build-tools/29.0.3/aapt package -f -M AndroidManifest.xml -S res -I android-sdk/platforms/android-29/android.jar -F root.apk
+    - name: Upload APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: Root-App
+        path: root.apk
